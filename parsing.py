@@ -8,43 +8,41 @@ try:
     driver.get('https://www.detmir.ru/catalog/index/name/lego/')
 except:
     pass
-driver.implicitly_wait(5)
-# element = driver.find_element_by_id("app-container")
 
-pages = 10
+driver.implicitly_wait(5)
+
+pages = 20
 
 total = []
 
-for page in range(1, pages):
-    url = 'https://www.detmir.ru/catalog/index/name/lego/page/' + str(page) + '/'
-    driver.get(url)
-    products_items = len(driver.find_elements(By.XPATH, "//div[contains(@class,'vW wb')]"))
-    for i in range(products_items):
-        products = driver.find_elements(By.XPATH, "//div[contains(@class,'vW wb')]")
-        for product in products:
-            product_name = product.find_element(By.TAG_NAME, 'p').text
-            product_price = product.find_element(By.CLASS_NAME, 'RA').text
-            new = ((product_name, product_price))
-            total.append(new)
-    df = pd.DataFrame(total, columns=['Название', 'Цена'])
-    df.to_csv('lego.csv', index=False)
+if len(total) <= 500:
+    for page in range(1, pages):
+        url = 'https://www.detmir.ru/catalog/index/name/lego/page/' + str(page) + '/'
+        driver.get(url)
+        city_name = driver.find_element(By.CLASS_NAME, 'lV').text
+        products_items = len(driver.find_elements(By.XPATH, "//div[contains(@class,'vW wb')]"))
 
-    df = pd.read_csv('lego.csv')
-    print(df)
+        for i in range(products_items):
+            try:
+                products = driver.find_elements(By.XPATH, "//div[contains(@class,'vW wb')]")
+                for product in products:
+                    product_name = product.find_element(By.TAG_NAME, 'p').text
+                    product_price = product.find_element(By.CLASS_NAME, 'RA').text
+                    promo_price = product.find_element(By.CLASS_NAME, 'RB').text
+                    new = ((product_name, product_price, city_name, promo_price))
 
+                    if new not in total:
+                        total.append(new)
+                    else:
+                        pass
 
-# for page in range(pages):
-#     pages += 1
-#     url = 'https://www.detmir.ru/catalog/index/name/lego/page/' + str(page) + '/'
-#     driver.get(url)
-#     products_items = driver.find_elements(By.XPATH, "//div[contains(@class,'vW wb')]")
-#     for i in products_items:
-#         product_name = i.find_element(By.TAG_NAME, 'p').text
-#         product_price = i.find_element(By.CLASS_NAME, 'RA').text
-#         new = ((product_name, product_price))
-#         total.append(new)
-#     df = pd.DataFrame(total, columns=['Название', 'Цена'])
-#     df.to_csv('lego.csv', index=False)
-#
-#     df = pd.read_csv('lego.csv')
-#     print(df)
+            except:
+                pass
+
+        df = pd.DataFrame(total, columns=['Название', 'Цена', 'Город', 'Промо цена'])
+        df.to_csv('lego.csv', index=False)
+
+        df = pd.read_csv('lego.csv')
+
+else:
+    driver.close()
